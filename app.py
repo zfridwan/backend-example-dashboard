@@ -12,7 +12,8 @@ app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'mydb'
 
-app.secret_key = 'your-secret-key'
+
+# app.secret_key = ''
 
 mysql = MySQL(app)
 
@@ -31,12 +32,12 @@ def login():
         user = cursor.fetchone()
 
         if user:
-            # Store user info in session
-            session['user_id'] = user[0]  # Assuming the first column is the user ID
-            session['username'] = user[1]  # Assuming the second column is the username
-            session['role'] = user[3]  # Assuming the fourth column is the role
+            # user info in session
+            session['user_id'] = user[0]  # kolom user id
+            session['username'] = user[1]  # kolom username
+            session['role'] = user[3]  # kolom role
 
-            # Return user role and success message
+            # Pesan balikan jika user berhasil login berdasarkan role
             print(f"User found: {user}")
             return jsonify({
                 'message': 'Login Sukses',
@@ -52,13 +53,13 @@ def login():
         # Log the actual error for debugging
         print(f"Error occurred: {str(e)}")
         return jsonify({
-            'message': 'An error occurred while processing your request.',
+            'message': 'error ketika memproses permintaan.',
             'error': str(e)
         }), 500
 
 @app.route('/session', methods=['GET'])
 def check_session():
-    # Check if the user is logged in via the session
+    # Chek session login jika user berhasil
     if 'user_id' in session:
         return jsonify({
             'isAuthenticated': True,
@@ -72,10 +73,10 @@ def check_session():
 
 @app.route('/logout', methods=['GET'])
 def logout():
-    # Clear session to log out the user
+    # membersihkan session user jika berhasil logout
     session.clear()
     return jsonify({
-        'message': 'Logged out successfully'
+        'message': 'Logged out berhasil'
     }), 200
     
 @app.route('/create_user', methods=['POST'])
@@ -90,13 +91,13 @@ def create_user():
         mysql.connection.commit()
 
         return jsonify({
-            'message': 'User created successfully'
+            'message': 'User berhasil dibuat'
         }), 201
 
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         return jsonify({
-            'message': 'An error occurred while creating the user.',
+            'message': 'error ketika membuat user baru',
             'error': str(e)
         }), 500
 
@@ -106,7 +107,7 @@ def download_file():
     try:
         return send_from_directory(TEXT_FILE_FOLDER, filename, as_attachment=True)
     except FileNotFoundError:
-        return "File not found", 404
+        return "File tidak ada", 404
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
