@@ -33,7 +33,7 @@ def update_session_activity():
         last_active = session.get('last_active')
         now = datetime.utcnow()
         
-        # Check if session has been inactive for more than 15 minutes
+        # Check if session has been inactive for more than 1 minutes
         if last_active and (now - datetime.fromisoformat(last_active)).total_seconds() > 60:
             session.clear()
             return jsonify({'message': 'Session timed out. Please log in again.'}), 401
