@@ -153,12 +153,10 @@ def get_financial_report():
         "areas": [area[0] for area in areas]  # Return the areas
     })
 
-
-
 @app.route('/users', methods=['GET'])
 def get_users():
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT id, username FROM users")
+    cursor.execute("SELECT id, username, role FROM users WHERE role = 'user'")  # Add role filter
     users = cursor.fetchall()
 
     return jsonify([{'id': user[0], 'username': user[1]} for user in users]), 200
@@ -167,6 +165,7 @@ def get_users():
 def assign_routes():
     user_id = request.json.get('user_id')
     routes = request.json.get('routes')
+    fitur = request.json.get('fitur')  # Assuming the 'fitur' is provided in the request
 
     try:
         # Clear the existing routes for the user
@@ -174,9 +173,10 @@ def assign_routes():
         cursor.execute("DELETE FROM user_routes WHERE user_id = %s", (user_id,))
         mysql.connection.commit()
 
-        # Insert the new routes
+        # Insert the new routes along with the 'fitur'
         for route in routes:
-            cursor.execute("INSERT INTO user_routes (user_id, route) VALUES (%s, %s)", (user_id, route))
+            cursor.execute("INSERT INTO user_routes (user_id, route, fitur) VALUES (%s, %s, %s)", 
+                           (user_id, route, fitur))
         mysql.connection.commit()
 
         return jsonify({
@@ -189,6 +189,25 @@ def assign_routes():
             'error': str(e)
         }), 500
 
+@app.route('/user_routes', methods=['GET'])
+def get_user_routes():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'message': 'User not logged in'}), 401
+
+    cursor = mysql.connection.cursor()
+    query = """
+        SELECT u.username, ur.route, ur.fitur
+        FROM users u
+        INNER JOIN user_routes ur ON u.id = ur.user_id
+        WHERE u.id = %s
+    """
+    cursor.execute(query, (user_id,))
+    results = cursor.fetchall()
+
+    combined_data = [{'username': row[0], 'route': row[1], 'fitur': row[2]} for row in results]
+    
+    return jsonify(combined_data), 200
 
 # Menjalankan Aplikasi
 if __name__ == '__main__':
